@@ -1,0 +1,198 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+  .main-container {
+    margin-top: 90px;
+    margin-left: 250px;
+    padding: 20px;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+  }
+</style>
+
+<div class="main-container">
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0  text-white ">Create New Transaction</h5>
+      <a href="" class="btn btn-light btn-sm">
+        Back to List
+      </a>
+    </div>
+
+    <div class="card-body">
+      <form method="POST" id="transactionForm">
+        {% csrf_token %}
+
+        <!-- Top Fields -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Caller ID / Customer *</label>
+            <input type="text" name="caller_id" class="form-control" required placeholder="Enter customer name or phone">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Source of Income *</label>
+            <input type="text" name="source_of_income" class="form-control" required placeholder="Cash, Card, UPI, etc.">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Technician *</label>
+            <select name="technician" class="form-select" required>
+              <option value="">-- Select Technician --</option>
+              {% for tech in technicians %}
+                <option value="{{ tech.id }}">{{ tech.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <h5 class="mb-3 text-primary">Parts Used</h5>
+
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle" id="partsTable">
+            <thead class="table-primary text-dark">
+              <tr>
+                <th width="20%">Part No.</th>
+                <th width="40%">Description</th>
+                <th width="18%">Retail Price</th>
+                <th width="18%">Charged Amount</th>
+                <th width="4%">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="part-row">
+                <td>
+                  <input type="text" name="part_no[]" class="form-control part-no-input" required placeholder="Enter Part No">
+                </td>
+                <td>
+                  <input type="text" name="description[]" class="form-control description" readonly placeholder="Auto-filled">
+                </td>
+                <td>
+                  <input type="text" name="retail_price[]" class="form-control retail-price text-end fw-bold" readonly placeholder="0.00">
+                </td>
+                <td>
+                  <input type="number" step="0.01" name="amount[]" class="form-control amount-input" required placeholder="Enter final amount">
+                </td>
+                <td class="text-center">
+                  <button type="button" class="btn btn-danger btn-sm remove-row" title="Remove">X</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button type="button" class="btn btn-outline-success btn-sm mb-3" id="addRowBtn">
+          Add Another Part
+        </button>
+
+        <!-- Grand Total -->
+        <div class="bg-light p-4 rounded-3 border mt-4">
+          <h4 class="text-end mb-0">
+            Grand Total: <span id="grandTotal" class="text-primary fw-bold">₹0.00</span>
+          </h4>
+        </div>
+
+        <div class="text-end mt-4">
+          <button type="submit" class="btn btn-success btn-lg px-5">
+            Save Transaction
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// Add New Row
+document.getElementById("addRowBtn").addEventListener("click", function () {
+  const tbody = document.querySelector("#partsTable tbody");
+  const firstRow = tbody.querySelector("tr");
+  const newRow = firstRow.cloneNode(true);
+
+  // Clear only editable fields
+  newRow.querySelectorAll("input").forEach(input => {
+    if (!input.readOnly) {
+      input.value = "";
+    }
+  });
+
+  tbody.appendChild(newRow);
+});
+
+// Remove Row
+document.addEventListener("click", function (e) {
+  if (e.target.classList.contains("remove-row")) {
+    const rows = document.querySelectorAll(".part-row");
+    if (rows.length > 1) {
+      e.target.closest("tr").remove();
+      updateTotal();
+    }
+  }
+});
+
+// Auto-fetch Part Details when Part No is entered
+document.addEventListener("input", function (e) {
+  if (e.target.classList.contains("part-no-input")) {
+    const partNo = e.target.value.trim();
+    const row = e.target.closest("tr");
+
+    // Reset fields if input is too short
+    if (partNo.length < 3) {
+      row.querySelector(".description").value = "";
+      row.querySelector(".retail-price").value = "";
+      return;
+    }
+
+    const url = "{% url 'get_part_details' %}?part_no=" + encodeURIComponent(partNo);
+
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.error) {
+          row.querySelector(".description").value = "Not Found";
+          row.querySelector(".retail-price").value = "";
+        } else {
+          // CORRECT: Fill Description and Retail Price only
+          row.querySelector(".description").value = data.description || "—";
+          row.querySelector(".retail-price").value = "₹" + parseFloat(data.retail_price || 0).toFixed(2);
+
+          // DO NOT auto-fill amount → user must type it
+          // Removed this block completely:
+          // const amountInput = row.querySelector(".amount-input");
+          // if (amountInput && data.retail_price) { amountInput.value = ... }
+        }
+      })
+      .catch(err => {
+        console.error("Fetch failed:", err);
+        row.querySelector(".description").value = "Error";
+        row.querySelector(".retail-price").value = "";
+      });
+  }
+
+  // Update total when user changes amount
+  if (e.target.classList.contains("amount-input")) {
+    updateTotal();
+  }
+});
+
+// Calculate Grand Total
+function updateTotal() {
+  let total = 0;
+  document.querySelectorAll(".amount-input").forEach(input => {
+    total += parseFloat(input.value) || 0;
+  });
+  document.getElementById("grandTotal").textContent = "₹" + total.toFixed(2);
+}
+
+// Initialize total
+updateTotal();
+</script>
+
+{% endblock %}

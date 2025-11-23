@@ -1,0 +1,142 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block title %}Expense Types{% endblock %}
+
+{% block content %}
+<div style="margin-left:250px; margin-top:60px; padding:20px;">
+  <div class="container">
+    <h3 class="mb-4">Manage Expense Types</h3>
+
+    <!-- Add/Edit Form -->
+    <form method="POST" action="">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_or_edit">
+      <input type="hidden" id="edit_id" name="id">
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Expense Type Name</label>
+          <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        
+      </div>
+
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+        <label class="form-check-label" for="is_active">Active</label>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="submitBtn">Add Expense Type</button>
+      <button type="button" class="btn btn-secondary" id="resetBtn">Reset</button>
+    </form>
+
+    <hr class="my-4">
+
+    <!-- Expense Types Table -->
+    <table class="table table-bordered align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for et in expense_types %}
+        <tr>
+          <td>{{ et.id }}</td>
+          <td>{{ et.name }}</td>
+          
+          <td>
+            {% if et.is_active %}
+              <span class="badge bg-success">Active</span>
+            {% else %}
+              <span class="badge bg-danger">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <form method="POST" action="" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="toggle">
+              <input type="hidden" name="id" value="{{ et.id }}">
+              <button type="submit" class="btn btn-sm btn-warning toggle-btn">Toggle</button>
+            </form>
+
+            <button class="btn btn-sm btn-info edit-btn"
+              data-id="{{ et.id }}"
+              data-name="{{ et.name }}"
+             
+              data-active="{{ et.is_active }}">Edit</button>
+
+            <form method="POST" action="" class="d-inline delete-form">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="id" value="{{ et.id }}">
+              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No expense types found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // Success / Error popup
+  {% if messages %}
+  {% for msg in messages %}
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: '{{ msg }}',
+      timer: 2000,
+      showConfirmButton: false
+    });
+  {% endfor %}
+  {% endif %}
+
+  // Confirm delete
+  document.querySelectorAll('.delete-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'This will delete the expense type permanently!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+      }).then(result => {
+        if (result.isConfirmed) form.submit();
+      });
+    });
+  });
+
+  // Edit functionality
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.getElementById('edit_id').value = this.dataset.id;
+      document.getElementById('name').value = this.dataset.name;
+      
+      document.getElementById('is_active').checked = this.dataset.active === "True";
+      document.getElementById('submitBtn').innerText = "Update Expense Type";
+    });
+  });
+
+  // Reset form
+  document.getElementById('resetBtn').addEventListener('click', function() {
+    document.getElementById('edit_id').value = "";
+    document.getElementById('name').value = "";
+    
+    document.getElementById('is_active').checked = true;
+    document.getElementById('submitBtn').innerText = "Add Expense Type";
+  });
+</script>
+{% endblock %}

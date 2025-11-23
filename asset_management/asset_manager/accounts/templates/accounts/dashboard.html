@@ -1,0 +1,142 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+  .main-container { margin-top: 90px; margin-left: 250px; padding: 20px; background: #f8f9fa; min-height: 100vh; }
+  .card-hover { transition: all 0.3s; }
+  .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1)!important; }
+  /* ensure selects are visible on dark/light backgrounds */
+  .filter-form .form-select { background: #fff; color: #212529; }
+</style>
+
+<div class="main-container">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary mb-0">Financial Dashboard</h2>
+    
+    <form method="get" class="d-flex gap-2 filter-form" id="filterForm">
+      <!-- these selects will be populated by JS below -->
+      <select name="month" id="monthSelect" class="form-select" style="width: 150px;"></select>
+
+      <select name="year" id="yearSelect" class="form-select" style="width: 120px;"></select>
+
+      <button type="submit" class="btn btn-primary">Go</button>
+    </form>
+  </div>
+
+  <h3 class="text-center text-muted mb-5">{{ month_name }} {{ year_display }}</h3>
+
+  <!-- Four Main Cards -->
+  <div class="row g-4">
+
+    <!-- Total Income -->
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm card-hover text-white" style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+        <div class="card-body text-center">
+          <h5 class="card-title">Total Income</h5>
+          <h2 class="mb-0">₹{{ total_income|floatformat:2 }}</h2>
+          <small>{{ transaction_count }} transaction{{ transaction_count|pluralize }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Part Cost -->
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm card-hover text-white" style="background: linear-gradient(940deg, #ff758c, #ff7eb3);">
+        <div class="card-body text-center">
+          <h5 class="card-title">Part Cost</h5>
+          <h2 class="mb-0">₹{{ total_part_cost|floatformat:2 }}</h2>
+          <small>Cost of parts used</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expenses -->
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm card-hover text-white" style="background: linear-gradient(135deg, #ff9a9e, #fecfef); color: #d63031;">
+        <div class="card-body text-center">
+          <h5 class="card-title">Other Expenses</h5>
+          <h2 class="mb-0">₹{{ total_expenses|floatformat:2 }}</h2>
+          <small>{{ expense_count }} entry{{ expense_count|pluralize }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Final Balance -->
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm card-hover text-white {% if balance >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+        <div class="card-body text-center">
+          <h5 class="card-title">Net Balance</h5>
+          <h2 class="mb-0">₹{{ balance|floatformat:2 }}</h2>
+          <small>{% if balance >= 0 %}Profit{% else %}Loss{% endif %}</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="mt-5 text-center">
+    <p class="text-muted">
+      <strong>Income</strong> − (<strong>Part Cost</strong> + <strong>Expenses</strong>) = 
+      <strong class="text-success">₹{{ balance|floatformat:2 }}</strong> Net Balance
+    </p>
+  </div>
+
+</div>
+
+<!-- populate month/year selects client-side so they render correctly -->
+<script>
+  (function() {
+    // Month names array (1-12)
+    const monthNames = [
+      "January","February","March","April","May","June",
+      "July","August","September","October","November","December"
+    ];
+
+    // JS current date for fallback
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+
+    // generate year selection (change range if you want)
+    const startYear = currentYear - 2;  // show last 5 years
+    const endYear = currentYear + 5;    // and 2 years into future
+    const years = [];
+    for (let y = startYear; y <= endYear; y++) years.push(y);
+
+    // selected values from server context (fallback to JS current date if not provided)
+    const selMonthRaw = "{{ selected_month|default:'' }}";
+    const selYearRaw  = "{{ selected_year|default:'' }}";
+
+    const selectedMonth = selMonthRaw !== "" ? parseInt(selMonthRaw, 10) : (currentDate.getMonth() + 1);
+    const selectedYear  = selYearRaw !== "" ? parseInt(selYearRaw, 10) : currentYear;
+
+    const monthSelect = document.getElementById('monthSelect');
+    const yearSelect = document.getElementById('yearSelect');
+
+    // populate months
+    monthNames.forEach((name, idx) => {
+      const val = idx + 1;
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.text = name;
+      if (val === selectedMonth) opt.selected = true;
+      monthSelect.appendChild(opt);
+    });
+
+    // populate years
+    years.forEach((y) => {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.text = y;
+      if (y === selectedYear) opt.selected = true;
+      yearSelect.appendChild(opt);
+    });
+
+    // ensure selects are visible (in case CSS previously hid them)
+    monthSelect.style.display = '';
+    yearSelect.style.display = '';
+  })();
+</script>
+
+{% endblock %}

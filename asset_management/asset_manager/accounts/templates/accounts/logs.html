@@ -1,0 +1,65 @@
+{% extends 'accounts/base.html' %}
+{% block content %}
+
+<style>
+    /* Adjust these values based on your sidebar width */
+    .content-wrapper {
+        margin-left: 260px;      /* space for sidebar */
+        margin-top: 70px;        /* space for top navbar */
+        padding: 20px;           /* clean padding inside */
+    }
+
+    @media (max-width: 768px) {
+        .content-wrapper {
+            margin-left: 0;      /* sidebar collapses on mobile */
+            margin-top: 70px;
+        }
+    }
+</style>
+
+<div class="content-wrapper">
+
+    <h3 class="mb-3">Transaction Logs</h3>
+
+    <a href="{% url 'download_logs_excel' %}" class="btn btn-success mb-3">
+        Download Excel
+    </a>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Transaction ID</th>
+                        <th>Old Data</th>
+                        <th>New Data</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <td>{{ log.user }}</td>
+                        <td>{{ log.action }}</td>
+                        <td>{{ log.transaction_id }}</td>
+                        <td>{{ log.old_data }}</td>
+                        <td>{{ log.new_data }}</td>
+                        <td>{{ log.timestamp }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center p-3 text-muted">
+                            No logs found.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

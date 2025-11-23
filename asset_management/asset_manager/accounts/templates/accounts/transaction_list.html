@@ -1,0 +1,211 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+  .main-container {
+    margin-top: 90px;
+    margin-left: 250px;
+    padding: 20px;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+  }
+  .search-box {
+    max-width: 400px;
+  }
+  .table th {
+    background-color: #e9ecef;
+    font-weight: 600;
+  }
+  .badge-paid { background-color: #d4edda; color: #155724; }
+  .total-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+</style>
+
+<div class="main-container">
+
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-primary mb-0">
+      <i class="bi bi-receipt"></i> All Transactions
+    </h3>
+    <a href="{% url 'create_transaction' %}" class="btn btn-success">
+      <i class="bi bi-plus-circle"></i> New Transaction
+    </a>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card total-card shadow-sm text-white">
+        <div class="card-body text-center">
+          <h5>Total Transactions</h5>
+          <h2 class="mb-0">{{ total_transactions }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card total-card shadow-sm text-white">
+        <div class="card-body text-center">
+          <h5>Today's Revenue</h5>
+          <h2 class="mb-0">₹{{ today_total|floatformat:2 }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card total-card shadow-sm text-white">
+        <div class="card-body text-center">
+          <h5>This Month</h5>
+          <h2 class="mb-0">₹{{ month_total|floatformat:2 }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card total-card shadow-sm text-white">
+        <div class="card-body text-center">
+          <h5>Grand Total</h5>
+          <h2 class="mb-0">₹{{ grand_total|floatformat:2 }}</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-5">
+          <input type="text" id="searchInput" class="form-control search-box" placeholder="Search by Caller ID, Part No, Technician...">
+        </div>
+        <div class="col-md-3">
+          <input type="date" id="dateFilter" class="form-control" value="{{ today }}">
+        </div>
+        <div class="col-md-4">
+          <select id="technicianFilter" class="form-select">
+            <option value="">All Technicians</option>
+            {% for tech in technicians %}
+              <option value="{{ tech.name }}">{{ tech.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" id="transactionTable">
+          <thead class="table-light">
+            <tr>
+              <th>Date & Time</th>
+              <th>Caller ID</th>
+              <th>Technician</th>
+              <th>Source</th>
+              <th>Parts Used</th>
+              <th class="text-end">Total Amount</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for trans in transactions %}
+            <tr data-technician="{{ trans.technician.name|default:'' }}" data-date="{{ trans.date|date:'Y-m-d' }}">
+              <td>
+                <strong>{{ trans.date|date:"d M Y" }}</strong><br>
+                <small class="text-muted">{{ trans.date|time:"h:i A" }}</small>
+              </td>
+              <td><strong>{{ trans.caller_id }}</strong></td>
+              <td>{{ trans.technician.name|default:"<em>Not Assigned</em>" }}</td>
+              <td>
+                <span class="badge bg-info text-dark">{{ trans.source_of_income }}</span>
+              </td>
+              <td>
+                {% for item in trans.items.all %}
+                  <small>
+                    <strong>{{ item.part.shipped_part_no }}</strong>
+                    → ₹{{ item.amount }}
+                  </small><br>
+                {% empty %}
+                  <em>No parts</em>
+                {% endfor %}
+              </td>
+              <td class="text-end fw-bold text-success">
+                ₹{{ trans.total_amount|floatformat:2 }}
+              </td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary view-details" data-id="{{ trans.id }}">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                <h5>No transactions found</h5>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Transaction Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Live Search + Filters
+document.getElementById("searchInput").addEventListener("input", filterTable);
+document.getElementById("dateFilter").addEventListener("change", filterTable);
+document.getElementById("technicianFilter").addEventListener("change", filterTable);
+
+function filterTable() {
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const date = document.getElementById("dateFilter").value;
+  const tech = document.getElementById("technicianFilter").value.toLowerCase();
+
+  document.querySelectorAll("#transactionTable tbody tr").forEach(row => {
+    const text = row.textContent.toLowerCase();
+    const rowDate = row.dataset.date;
+    const rowTech = row.dataset.technician.toLowerCase();
+
+    const matchesSearch = text.includes(search);
+    const matchesDate = !date || rowDate === date;
+    const matchesTech = !tech || rowTech.includes(tech);
+
+    row.style.display = (matchesSearch && matchesDate && matchesTech) ? "" : "none";
+  });
+}
+
+// View Details Modal
+document.querySelectorAll(".view-details").forEach(btn => {
+  btn.addEventListener("click", function() {
+    const transId = this.dataset.id;
+    fetch(`/transaction-detail/${transId}/`)
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("modalBody").innerHTML = html;
+        new bootstrap.Modal(document.getElementById("detailModal")).show();
+      });
+  });
+});
+</script>
+
+{% endblock %}

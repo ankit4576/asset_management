@@ -1,0 +1,151 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block title %}Expense List{% endblock %}
+
+{% block content %}
+<div style="margin-left:250px; margin-top:60px; padding:20px;">
+  <div class="container">
+    <h3 class="mb-4">Expense List</h3>
+
+    <table class="table table-bordered mt-3">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>User Name</th>
+          <th>Reason</th>
+          <th>Description</th>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in expenses %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ e.user_name }}</td>
+            <td>{{ e.reason.name }}</td>
+            <td>{{ e.description }}</td>
+            <td>{{ e.date|date:"Y-m-d" }}</td>
+            <td>₹ {{ e.amount }}</td>
+            <td>
+              <button class="btn btn-sm btn-warning" 
+                      onclick="openEditModal('{{ e.id }}','{{ e.user_name }}','{{ e.reason.id }}','{{ e.amount }}','{{ e.date|date:'Y-m-d' }}','{{ e.description }}')">
+                      Edit
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="confirmDelete('{{ e.id }}')">Delete</button>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center">No expenses found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="editForm">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Expense</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="action" value="edit">
+          <input type="hidden" name="expense_id" id="edit_expense_id">
+
+          <div class="mb-3">
+            <label>User Name</label>
+            <input type="text" class="form-control" name="user_name" id="edit_user_name" required>
+          </div>
+
+          <div class="mb-3">
+            <label>Reason</label>
+            <select class="form-select" name="reason" id="edit_reason" required>
+              <option value="">Select Reason</option>
+              {% for r in expense_types %}
+                <option value="{{ r.id }}">{{ r.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label>Amount</label>
+            <input type="number" class="form-control" name="amount" id="edit_amount" step="0.01" required>
+          </div>
+
+          <div class="mb-3">
+            <label>Date</label>
+            <input type="date" class="form-control" name="date" id="edit_date" required>
+          </div>
+
+          <div class="mb-3">
+            <label>Description</label>
+            <input type="text" class="form-control" name="description" id="edit_description" placeholder="Optional">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Update Expense</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function openEditModal(id, user_name, reason_id, amount, date, desc){
+  document.getElementById('edit_expense_id').value = id;
+  document.getElementById('edit_user_name').value = user_name;
+  document.getElementById('edit_reason').value = reason_id;
+  document.getElementById('edit_amount').value = amount;
+  document.getElementById('edit_date').value = date;
+  document.getElementById('edit_description').value = desc;
+
+  var editModal = new bootstrap.Modal(document.getElementById('editModal'));
+  editModal.show();
+}
+
+function confirmDelete(id) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "This expense will be deleted permanently!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.innerHTML = `
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="expense_id" value="${id}">
+      `;
+      document.body.appendChild(form);
+      form.submit();
+    }
+  });
+}
+
+// Success messages after any action
+{% if messages %}
+  {% for message in messages %}
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: '{{ message }}',
+      timer: 2000,
+      showConfirmButton: false
+    });
+  {% endfor %}
+{% endif %}
+</script>
+{% endblock %}

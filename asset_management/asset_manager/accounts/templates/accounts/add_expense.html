@@ -1,0 +1,60 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block title %}Add Expense{% endblock %}
+
+{% block content %}
+<div style="margin-left:250px; margin-top:60px; padding:20px;">
+  <div class="container">
+    <h3>Add Expense</h3>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label>User Name</label>
+          <input type="text" class="form-control" name="user_name" placeholder="Enter user name" required>
+        </div>
+
+        <div class="col-md-6">
+          <label>Reason</label>
+          <select class="form-select" name="reason" required>
+            <option value="">Select Reason</option>
+            {% for r in expense_types %}
+              <option value="{{ r.id }}">{{ r.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label>Amount</label>
+          <input type="number" class="form-control" name="amount" step="0.01" required>
+        </div>
+
+        <div class="col-md-6">
+          <label>Date</label>
+          <input type="date" class="form-control" name="date" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label>Description</label>
+        <input type="text" class="form-control" name="description" placeholder="Optional">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Add Expense</button>
+    </form>
+  </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% if messages %}
+  <script>
+  {% for message in messages %}
+    Swal.fire({icon:'success', title:'Success!', text:'{{ message }}', timer:2000, showConfirmButton:false});
+  {% endfor %}
+  </script>
+{% endif %}
+{% endblock %}

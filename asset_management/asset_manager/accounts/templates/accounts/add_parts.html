@@ -1,0 +1,51 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block title %}Add Part{% endblock %}
+
+{% block content %}
+<div style="margin-left:250px; margin-top:60px; padding:20px;">
+  <div class="container">
+    <h3 class="mb-4">Add Part</h3>
+
+    <form method="post" action="">
+      {% csrf_token %}
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="shipped_part_no" class="form-label">Shipped Part No.</label>
+          <input type="text" class="form-control" name="shipped_part_no" id="shipped_part_no" placeholder="Enter part number">
+        </div>
+        <div class="col-md-6">
+          <label for="part_price" class="form-label">Part Price <span class="text-danger">*</span></label>
+          <input type="number" step="0.01" class="form-control" name="part_price" id="part_price" placeholder="Enter part price" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="part_description" class="form-label">Part Description <span class="text-danger">*</span></label>
+        <textarea class="form-control" name="part_description" id="part_description" rows="3" placeholder="Enter part description" required></textarea>
+      </div>
+
+      <button type="submit" name="action" value="add" class="btn btn-primary">Add Part</button>
+      <a href="{% url 'manage_parts' %}" class="btn btn-secondary">Back to List</a>
+    </form>
+  </div>
+</div>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  {% if messages %}
+    {% for message in messages %}
+      Swal.fire({
+        icon: '{% if message.tags == "error" %}error{% else %}success{% endif %}',
+        title: '{% if message.tags == "error" %}Error!{% else %}Success!{% endif %}',
+        text: '{{ message }}',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    {% endfor %}
+  {% endif %}
+</script>
+{% endblock %}

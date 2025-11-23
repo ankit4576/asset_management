@@ -1,0 +1,216 @@
+{% extends "accounts/base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Technicians</h4>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">+ Add Technician</button>
+  </div>
+
+  <table class="table table-bordered align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>User Linked</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tech in technicians %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ tech.name }}</td>
+        <td>{{ tech.email }}</td>
+        <td>{{ tech.phone }}</td>
+        <td>{% if tech.user %}{{ tech.user.username }}{% else %}<em>None</em>{% endif %}</td>
+        <td>
+          <span class="badge {% if tech.is_active %}bg-success{% else %}bg-danger{% endif %}">
+            {% if tech.is_active %}Active{% else %}Inactive{% endif %}
+          </span>
+        </td>
+        <td>
+          <!-- Edit -->
+          <button class="btn btn-sm btn-warning"
+            data-bs-toggle="modal"
+            data-bs-target="#editModal{{ tech.id }}">Edit</button>
+
+          <!-- Toggle -->
+          <form method="POST" class="d-inline toggleForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle">
+            <input type="hidden" name="tech_id" value="{{ tech.id }}">
+            <button type="button" class="btn btn-sm btn-secondary toggleBtn">
+              {% if tech.is_active %}Deactivate{% else %}Activate{% endif %}
+            </button>
+          </form>
+
+          <!-- Delete -->
+          <form method="POST" class="d-inline deleteForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="tech_id" value="{{ tech.id }}">
+            <button type="button" class="btn btn-sm btn-danger deleteBtn">Delete</button>
+          </form>
+        </td>
+      </tr>
+
+      <!-- Edit Modal -->
+      <div class="modal fade" id="editModal{{ tech.id }}" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form method="POST" class="editForm">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="edit">
+              <input type="hidden" name="tech_id" value="{{ tech.id }}">
+              <div class="modal-header">
+                <h5 class="modal-title">Edit Technician</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-2">
+                  <label>Name</label>
+                  <input type="text" name="name" value="{{ tech.name }}" class="form-control" required>
+                </div>
+                <div class="mb-2">
+                  <label>Email</label>
+                  <input type="email" name="email" value="{{ tech.email }}" class="form-control">
+                </div>
+                <div class="mb-2">
+                  <label>Phone</label>
+                  <input type="text" name="phone" value="{{ tech.phone }}" class="form-control">
+                </div>
+                <div class="mb-2">
+                  <label>Address</label>
+                  <textarea name="address" class="form-control">{{ tech.address }}</textarea>
+                </div>
+                <div class="mb-2">
+                  <label>Linked User</label>
+                  <select name="user" class="form-select">
+                    <option value="">-- None --</option>
+                    {% for u in users %}
+                    <option value="{{ u.id }}" {% if tech.user and tech.user.id == u.id %}selected{% endif %}>{{ u.username }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="form-check mt-2">
+                  <input type="checkbox" name="is_active" class="form-check-input" id="activeCheck{{ tech.id }}" {% if tech.is_active %}checked{% endif %}>
+                  <label class="form-check-label" for="activeCheck{{ tech.id }}">Active</label>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Technician</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label>Name</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control">
+          </div>
+          <div class="mb-2">
+            <label>Phone</label>
+            <input type="text" name="phone" class="form-control">
+          </div>
+          <div class="mb-2">
+            <label>Address</label>
+            <textarea name="address" class="form-control"></textarea>
+          </div>
+          <div class="mb-2">
+            <label>Linked User</label>
+            <select name="user" class="form-select">
+              <option value="">-- None --</option>
+              {% for u in users %}
+              <option value="{{ u.id }}">{{ u.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-check mt-2">
+            <input type="checkbox" name="is_active" class="form-check-input" id="addActiveCheck" checked>
+            <label class="form-check-label" for="addActiveCheck">Active</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Add Technician</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- SweetAlert Integration -->
+<script>
+  // Delete confirmation
+  document.querySelectorAll('.deleteBtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const form = btn.closest('form');
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "This technician will be permanently deleted!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+      }).then(result => {
+        if (result.isConfirmed) form.submit();
+      });
+    });
+  });
+
+  // Toggle confirmation
+  document.querySelectorAll('.toggleBtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const form = btn.closest('form');
+      Swal.fire({
+        title: 'Change Status?',
+        text: "Do you want to toggle the active status?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, change it!',
+      }).then(result => {
+        if (result.isConfirmed) form.submit();
+      });
+    });
+  });
+
+  // Show Django messages as SweetAlerts
+  {% if messages %}
+  {% for message in messages %}
+  Swal.fire({
+    title: "{{ message.tags|capfirst }}",
+    text: "{{ message }}",
+    icon: "{% if 'success' in message.tags %}success{% elif 'error' in message.tags %}error{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}",
+    timer: 2000,
+    showConfirmButton: false
+  });
+  {% endfor %}
+  {% endif %}
+</script>
+
+{% endblock %}
