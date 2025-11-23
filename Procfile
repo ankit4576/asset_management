@@ -1,1 +1,1 @@
-web: gunicorn asset_manager.asset_manager.wsgi:application
+web: gunicorn asset_manager.asset_manager.wsgi
