@@ -76,17 +76,26 @@ WSGI_APPLICATION = 'asset_manager.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'assetdb',          # your database name
+#         'USER': 'postgres',         # your postgres username
+#         'PASSWORD': 'sakshi123', # replace with your actual password
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'assetdb',          # your database name
-        'USER': 'postgres',         # your postgres username
-        'PASSWORD': 'sakshi123', # replace with your actual password
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': 'asset_management_db_0j6q',                              # ← database name
+        'USER': 'asset_management_db_0j6q_user',                         # ← username
+        'PASSWORD': 'WdvUZSE8lEyjeMqPTQmFxycjjFH2tpMj',                  # ← password
+        'HOST': 'dpg-d4ht4vhr0fns73afe4qg-a.oregon-postgres.render.com', # ← host
+        'PORT': '5432',                                                  # ← port
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
