@@ -2,7 +2,7 @@ import json
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Expense, ExpenseType, Technician, Transaction, TransactionItem, User, Part
+from .models import AMCExpense, AMCIncome, Expense, ExpenseType, Technician, Transaction, TransactionItem, User, Part
 from django.utils import timezone
 import openpyxl
 from django.db.models import F, Sum, Count, ExpressionWrapper, DecimalField
@@ -581,3 +581,55 @@ def transaction_list(request):
 def transaction_detail(request, pk):
     trans = get_object_or_404(Transaction, pk=pk)
     return render(request, 'accounts/transaction_detail_partial.html', {'trans': trans})
+
+
+
+def amc_dashboard(request):
+    total_income = AMCIncome.objects.aggregate(total=Sum('amc_amount'))['total'] or 0
+    total_expense = AMCExpense.objects.aggregate(total=Sum('amount'))['total'] or 0
+
+    balance = total_income - total_expense
+    loss = total_expense - total_income if total_expense > total_income else 0
+
+    incomes = AMCIncome.objects.order_by('-date')
+    expenses = AMCExpense.objects.order_by('-date')
+
+    return render(request, 'accounts/amc_dashboard.html', {
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'balance': balance,
+        'loss': loss,
+        'incomes': incomes,
+        'expenses': expenses
+    })
+
+
+def add_income_amc(request):
+    if request.method == "POST":
+        AMCIncome.objects.create(
+            date=request.POST.get('date'),
+            customer_name=request.POST.get('customer_name'),
+            serial_no=request.POST.get('serial_no'),
+            product=request.POST.get('product'),
+            amc_amount=request.POST.get('amc_amount'),
+            amc_coverage=request.POST.get('amc_coverage'),
+            technician_id=request.POST.get('technician')
+        )
+        return redirect('amc_dashboard')
+
+    technicians = Technician.objects.all()
+    return render(request, 'accounts/add_income_amc.html', {'technicians': technicians})
+
+
+def add_expense_amc(request):
+    if request.method == "POST":
+        AMCExpense.objects.create(
+            date=request.POST.get('date'),
+            serial_no=request.POST.get('serial_no'),
+            reason=request.POST.get('reason'),
+            expencer_name=request.POST.get('expencer_name'),
+            amount=request.POST.get('amount')
+        )
+        return redirect('amc_dashboard')
+
+    return render(request, 'accounts/add_expense_amc.html')

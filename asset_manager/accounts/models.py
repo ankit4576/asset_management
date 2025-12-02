@@ -91,3 +91,27 @@ class TransactionItem(models.Model):
 
     def __str__(self):
         return f"{self.part.shipped_part_no} → ₹{self.amount}"
+    
+
+class AMCIncome(models.Model):
+    date = models.DateField(default=timezone.now)
+    customer_name = models.CharField(max_length=200)
+    serial_no = models.CharField(max_length=50)
+    product = models.CharField(max_length=50)  # free text
+    amc_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amc_coverage = models.CharField(max_length=20, blank=True, null=True)
+    technician = models.ForeignKey(Technician, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.customer_name} - {self.amc_amount}"
+
+
+class AMCExpense(models.Model):
+    date = models.DateField(default=timezone.now)
+    serial_no = models.CharField(max_length=50)
+    reason = models.CharField(max_length=200)
+    expencer_name = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.serial_no} - {self.amount}"

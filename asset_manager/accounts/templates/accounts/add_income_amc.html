@@ -1,0 +1,94 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+  .main-container {
+    margin-top: 90px;
+    margin-left: 250px;
+    padding: 20px;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+  }
+</style>
+
+<div class="main-container">
+  <div class="card border-0 shadow-sm rounded-4">
+
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 text-white">Add AMC Income</h5>
+      <a href="amc_dashboard" class="btn btn-light btn-sm">Back</a>
+    </div>
+
+    <div class="card-body">
+
+      <form method="POST">
+        {% csrf_token %}
+
+        <!-- Top Fields -->
+        <div class="row g-3 mb-4">
+          
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Date *</label>
+            <input type="date" name="date" class="form-control" required>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Customer Name *</label>
+            <input type="text" name="customer_name" class="form-control" required placeholder="Enter customer name">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Serial No *</label>
+            <input type="text" name="serial_no" class="form-control" required placeholder="Enter serial number">
+          </div>
+
+        </div>
+
+        <!-- Product & Amount Row -->
+        <div class="row g-3 mb-4">
+          
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Product *</label>
+            <input type="text" name="product" class="form-control" required placeholder="Enter product name">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-bold">AMC Amount *</label>
+            <input type="number" step="0.01" name="amc_amount" class="form-control" required placeholder="Enter AMC amount">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Coverage</label>
+            <input type="text" name="amc_coverage" class="form-control" placeholder="Example: 2 Years">
+          </div>
+
+        </div>
+
+        <!-- Technician -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">Technician *</label>
+            <select name="technician" class="form-select" required>
+              <option value="">-- Select Technician --</option>
+              {% for tech in technicians %}
+                <option value="{{ tech.id }}">{{ tech.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="text-end mt-4">
+          <button type="submit" class="btn btn-success btn-lg px-5">
+            Save AMC Income
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

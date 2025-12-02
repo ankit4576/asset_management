@@ -32,7 +32,10 @@ urlpatterns = [
     path('transactions_add/', views.create_transaction, name='create_transaction'),
     path('get-part-details/', views.get_part_details, name='get_part_details'),
     path('transaction-detail/<int:pk>/', views.transaction_detail, name='transaction_detail'),
-    # path('list/', views.transaction_list, name='transaction_list'),
-    # path('report/', views.monthly_report, name='monthly_report'),
+    
+    path('amc_dashboard', views.amc_dashboard, name='amc_dashboard'),
+    path('add-income_amc/', views.add_income_amc, name='add_income'),
+    path('add-expense_amc/', views.add_expense_amc, name='add_expense'),
+    
 
 ]

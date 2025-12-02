@@ -1,0 +1,213 @@
+
+
+{% block content %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AMC Dashboard</title>
+
+    <style>
+        body {
+            font-family: Calibri, sans-serif;
+            background: #eef2f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 98%;
+            margin: auto;
+        }
+
+        h2 {
+            background: #2f5597;
+            color: white;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 6px;
+        }
+
+        .card-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+
+        .card {
+            width: 22%;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0px 0px 8px #cdd1d6;
+        }
+
+        .card h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .card-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .income { border-top: 6px solid #28a745; }
+        .expense { border-top: 6px solid #dc3545; }
+        .balance { border-top: 6px solid #007bff; }
+        .loss { border-top: 6px solid #ff0000; }
+
+        .tables-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 35px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: #2f5597;
+            color: white;
+            padding: 8px;
+        }
+
+        td {
+            background: white;
+            padding: 7px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .box-title {
+            background: #1d3557;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .half {
+            width: 49%;
+        }
+
+        .add-btn {
+            padding: 8px 15px;
+            background: #008cff;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .add-btn:hover {
+            background: #006cd1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>A-ONE SERVICE – AMC INCOME EXPENSE SHEET</h2>
+
+    <!-- TOP CARDS -->
+    <div class="card-container">
+
+        <div class="card income">
+            <h3>Total Income</h3>
+            <div class="card-value">{{ total_income }}</div>
+        </div>
+
+        <div class="card expense">
+            <h3>Total Expense</h3>
+            <div class="card-value">{{ total_expense }}</div>
+        </div>
+
+        <div class="card balance">
+            <h3>Total Balance</h3>
+            <div class="card-value">{{ balance }}</div>
+        </div>
+
+        <div class="card loss">
+            <h3>Total Loss</h3>
+            <div class="card-value">{{ loss }}</div>
+        </div>
+
+    </div>
+
+    <!-- TWO TABLES SIDE BY SIDE -->
+    <div class="tables-section">
+
+        <!-- INCOME TABLE -->
+        <div class="half">
+            <div class="box-title">AMC INCOME SHEET ENTRY</div>
+
+            <a href="{% url 'add_income' %}" class="add-btn">+ Add Income</a>
+
+            <table>
+                <tr>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Serial No</th>
+                    <th>Product</th>
+                    <th>Amount</th>
+                    <th>Technician</th>
+                </tr>
+
+                {% for i in incomes %}
+                <tr>
+                    <td>{{ i.date }}</td>
+                    <td>{{ i.customer_name }}</td>
+                    <td>{{ i.serial_no }}</td>
+                    <td>{{ i.product }}</td>
+                    <td>{{ i.amc_amount }}</td>
+                    <td>{{ i.technician }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- EXPENSE TABLE -->
+        <div class="half">
+            <div class="box-title">AMC EXPENSE SHEET ENTRY</div>
+
+            <a href="{% url 'add_expense' %}" class="add-btn">+ Add Expense</a>
+
+            <table>
+                <tr>
+                    <th>Date</th>
+                    <th>Serial No</th>
+                    <th>Reason</th>
+                    <th>Expencer</th>
+                    <th>Amount</th>
+                </tr>
+
+                {% for e in expenses %}
+                <tr>
+                    <td>{{ e.date }}</td>
+                    <td>{{ e.serial_no }}</td>
+                    <td>{{ e.reason }}</td>
+                    <td>{{ e.expencer_name }}</td>
+                    <td>{{ e.amount }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
+
+{% endblock %}
