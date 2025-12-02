@@ -86,15 +86,25 @@ WSGI_APPLICATION = 'asset_manager.wsgi.application'
 #         'PORT': '5432',
 #     }
 # }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'asset_management_db_0j6q',                              # ← database name
+#         'USER': 'asset_management_db_0j6q_user',                         # ← username
+#         'PASSWORD': 'WdvUZSE8lEyjeMqPTQmFxycjjFH2tpMj',                  # ← password
+#         'HOST': 'dpg-d4ht4vhr0fns73afe4qg-a.oregon-postgres.render.com', # ← host
+#         'PORT': '5432',                                                  # ← port
+#     }
+# }
+
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'asset_management_db_0j6q',                              # ← database name
-        'USER': 'asset_management_db_0j6q_user',                         # ← username
-        'PASSWORD': 'WdvUZSE8lEyjeMqPTQmFxycjjFH2tpMj',                  # ← password
-        'HOST': 'dpg-d4ht4vhr0fns73afe4qg-a.oregon-postgres.render.com', # ← host
-        'PORT': '5432',                                                  # ← port
-    }
+    'default': dj_database_url.parse(
+        'postgresql://asset_management_db_0j6q_user:WdvUZSE8lEyjeMqPTQmFxycjjFH2tpMj@dpg-d4ht4vhr0fns73afe4qg-a.oregon-postgres.render.com/asset_management_db_0j6q',
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 # Password validation
