@@ -97,24 +97,16 @@ WSGI_APPLICATION = 'asset_manager.wsgi.application'
 #     }
 # }
 
-# import dj_database_url
-
-# DATABASES = {
-#     'default': dj_database_url.parse(
-#         'postgresql://asset_management_db_0j6q_user:WdvUZSE8lEyjeMqPTQmFxycjjFH2tpMj@dpg-d4ht4vhr0fns73afe4qg-a.oregon-postgres.render.com/asset_management_db_0j6q',
-#         conn_max_age=600,
-#         ssl_require=True
-#     )
-# }
 import dj_database_url
 
 DATABASES = {
     'default': dj_database_url.parse(
-        'DATABASE_URL = postgresql://postgres:RHuWPNqUWYTZNcDUJzyBprXXMjvGQaJw@mainline.proxy.rlwy.net:24306/railway',
+        'postgresql://asset_management_db_0j6q_user:WdvUZSE8lEyjeMqPTQmFxycjjFH2tpMj@dpg-d4ht4vhr0fns73afe4qg-a.oregon-postgres.render.com/asset_management_db_0j6q',
         conn_max_age=600,
         ssl_require=True
     )
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
