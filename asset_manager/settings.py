@@ -107,13 +107,14 @@ WSGI_APPLICATION = 'asset_manager.wsgi.application'
 #     )
 # }
 import dj_database_url
-import os
 
 DATABASES = {
-    "default": dj_database_url.parse(os.environ.get("DATABASE_URL"))
+    'default': dj_database_url.parse(
+        'DATABASE_URL = postgresql://postgres:RHuWPNqUWYTZNcDUJzyBprXXMjvGQaJw@mainline.proxy.rlwy.net:24306/railway',
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
